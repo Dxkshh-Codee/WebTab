@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WebTab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#ff2b3a;
+    --red-dark:#a3181b;
+    --blue:#2b3dff;
+    --cyan:#28e0ff;
+    --pink:#ff2bd6;
+    --ink:#eef1fb;
+    --ink-dim:#93a0c9;
+    --void:#05070f;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;height:100%;background:var(--void);color:var(--ink);font-family:'Inter',sans-serif;overflow:hidden}
+  #webCanvas{position:fixed;inset:0;z-index:0}
+
+  /* halftone comic dots, spiderverse-ish */
+  .halftone{
+    position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0.35;
+    background-image:radial-gradient(rgba(255,43,214,0.35) 1px, transparent 1.4px);
+    background-size:14px 14px;
+    mask-image:radial-gradient(circle at 50% 40%, black 0%, transparent 70%);
+  }
+  .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(circle at 50% 40%, transparent 30%, rgba(5,7,15,0.9) 100%)}
+  .glitch-strip{
+    position:fixed;left:0;right:0;height:2px;z-index:4;pointer-events:none;
+    background:linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity:0;
+  }
+
+  .page{
+    position:relative;z-index:2;height:100vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:24px;padding:20px;
+  }
+  .logo{
+    font-family:'Bangers',cursive;
+    font-size:clamp(38px,8vw,68px);
+    letter-spacing:0.03em;
+    color:var(--red);
+    text-shadow:2px 0 var(--cyan), -2px 0 var(--pink), 0 4px 0 var(--red-dark);
+    -webkit-text-stroke:1.5px #05070f;
+    position:relative;
+    animation:glitchShift 5s infinite;
+  }
+  @keyframes glitchShift{
+    0%,92%,100%{ transform:translate(0,0); }
+    93%{ transform:translate(-2px,1px); }
+    94%{ transform:translate(2px,-1px); }
+    95%{ transform:translate(-1px,0); }
+    96%{ transform:translate(0,0); }
+  }
+  .tagline{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;letter-spacing:0.14em;color:var(--cyan);text-transform:uppercase;
+    text-align:center;opacity:0.85;
+  }
+  .greeting{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;letter-spacing:0.06em;color:var(--ink-dim);text-transform:uppercase;
+    text-align:center;
+  }
+  .clock{
+    font-family:'JetBrains Mono',monospace;
+    font-size:15px;color:var(--red);
+  }
+
+  .search-zone{position:relative;width:min(560px,90vw);z-index:9}
+  .search-box{
+    display:flex;align-items:center;gap:10px;
+    background:rgba(255,255,255,0.06);
+    border:1.5px solid rgba(255,43,58,0.4);
+    border-radius:30px;padding:12px 20px;
+    backdrop-filter:blur(10px);
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  .search-box:focus-within{
+    border-color:var(--red);
+    box-shadow:0 0 0 3px rgba(255,43,58,0.2), 0 0 26px rgba(255,43,58,0.3);
+  }
+  .search-box input{
+    flex:1;background:transparent;border:none;outline:none;
+    color:var(--ink);font-family:'Inter',sans-serif;font-size:15px;
+  }
+  .search-box input::placeholder{color:var(--ink-dim)}
+  .search-box button{
+    background:none;border:none;cursor:pointer;color:var(--red);font-size:18px;
+    display:flex;align-items:center;
+  }
+
+  /* hanging spider above the search bar */
+  .spider-thread{
+    position:absolute;right:14px;top:-56px;width:1px;height:56px;z-index:10;
+    background:linear-gradient(180deg, transparent, rgba(255,255,255,0.65));
+    transform-origin:top center;
+    animation:swingThread 3.4s ease-in-out infinite;
+  }
+  @keyframes swingThread{
+    0%,100%{ transform:rotate(-9deg); }
+    50%{ transform:rotate(9deg); }
+  }
+  .spider{
+    position:absolute;left:50%;top:100%;transform:translate(-50%,0);
+    cursor:pointer;z-index:11;
+  }
+  .spider svg{width:22px;height:18px;display:block;filter:drop-shadow(0 0 4px rgba(255,43,58,.5))}
+  .spider:hover svg{ animation:spiderSkitter .3s ease-in-out; }
+  @keyframes spiderSkitter{
+    0%,100%{ transform:translateX(0); }
+    25%{ transform:translateX(-3px); }
+    75%{ transform:translateX(3px); }
+  }
+
+  .links-row{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+  .quick-link{
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    text-decoration:none;color:var(--ink);
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.04em;
+  }
+  .quick-link .icon{
+    position:relative;
+    width:48px;height:48px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:
+      radial-gradient(circle at 50% 50%, transparent 0 30%, rgba(255,255,255,0.05) 31% 32%, transparent 33%),
+      radial-gradient(circle at 50% 50%, transparent 0 44%, rgba(255,255,255,0.05) 45% 46%, transparent 47%),
+      linear-gradient(160deg, var(--blue), #0c1e4d);
+    border:1.5px solid rgba(255,43,58,0.45);
+    overflow:hidden;
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+  }
+  .quick-link .icon::before{
+    content:"";
+    position:absolute;inset:0;
+    background-image:
+      linear-gradient(0deg, transparent 49%, rgba(255,255,255,0.08) 50%, transparent 51%),
+      linear-gradient(60deg, transparent 49%, rgba(255,255,255,0.08) 50%, transparent 51%),
+      linear-gradient(120deg, transparent 49%, rgba(255,255,255,0.08) 50%, transparent 51%);
+    border-radius:50%;
+  }
+  .quick-link:hover .icon{
+    transform:translateY(-3px) rotate(-4deg);
+    border-color:var(--cyan);
+    box-shadow:0 8px 22px rgba(40,224,255,0.3), inset 0 0 12px rgba(40,224,255,0.15);
+  }
+  .quick-link .icon svg{width:20px;height:20px;position:relative;z-index:1}
+
+  .sense-corner{
+    position:fixed;top:22px;right:24px;z-index:5;
+    width:180px;
+    background:rgba(11,15,30,0.75);
+    border:1px solid rgba(255,43,58,0.32);
+    border-radius:12px;padding:10px 12px;
+    backdrop-filter:blur(10px);
+    text-align:left;
+  }
+  .sense-label{
+    font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:0.1em;
+    color:var(--pink);text-transform:uppercase;margin-bottom:5px;
+    display:flex;align-items:center;gap:5px;
+  }
+  .sense-label .dot{
+    width:5px;height:5px;border-radius:50%;background:var(--red);
+    box-shadow:0 0 6px var(--red);animation:pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .sense-text{font-size:9.5px;line-height:1.45;color:var(--ink-dim);min-height:26px}
+  .sense-refresh{
+    margin-top:6px;background:none;border:1px solid rgba(255,43,58,0.4);
+    color:var(--red);font-family:'JetBrains Mono',monospace;font-size:8px;
+    padding:3px 9px;border-radius:14px;cursor:pointer;letter-spacing:.04em;
+    transition:background .15s ease;
+  }
+  .sense-refresh:hover{background:rgba(255,43,58,0.15)}
+  @media (max-width:700px){
+    .sense-corner{ top:auto; bottom:18px; right:16px; width:150px; }
+  }
+
+  .web-shot{
+    position:fixed;z-index:3;pointer-events:none;
+    background:#fff;border-radius:50%;
+    box-shadow:0 0 6px #fff, 0 0 14px var(--red);
+  }
+
+  @media (max-width:480px){
+    .links-row{gap:10px}
+  }
+
+  .mouse-spider{
+    position:fixed;top:0;left:0;z-index:6;pointer-events:none;
+    width:16px;height:13px;
+    transform:translate(-50%,-50%);
+    filter:drop-shadow(0 0 4px rgba(255,43,58,.6));
+  }
+  .mouse-spider svg{width:100%;height:100%;display:block}
+
+  .spider-hang{
+    position:fixed;top:0;left:20px;z-index:5;
+    transform-origin:top center;
+    animation:hangSwing 4.5s ease-in-out infinite;
+    cursor:pointer;
+    width:90px;
+  }
+  .spider-hang img{width:100%;display:block;filter:drop-shadow(0 0 8px rgba(255,43,58,.35))}
+  @keyframes hangSwing{
+    0%,100%{ transform:rotate(-5deg); }
+    50%{ transform:rotate(5deg); }
+  }
+  .spider-hang:hover img{ animation:hangWave .5s ease-in-out; }
+  @keyframes hangWave{
+    0%,100%{ transform:rotate(0deg); }
+    50%{ transform:rotate(9deg); }
+  }
+  @media (max-width:700px){
+    .spider-hang{ display:none; }
+  }
+</style>
+  <script type="module" crossorigin src="/WebTab/assets/index-CM_SPjmk.js"></script>
+  <link rel="stylesheet" crossorigin href="/WebTab/assets/index-CsUDhMuy.css">
+</head>
+<body>
+
+<canvas id="webCanvas"></canvas>
+<div class="halftone"></div>
+<div class="vignette"></div>
+<div class="glitch-strip" id="glitchStrip" style="top:30%"></div>
+
+<!-- hanging spider head, string is built into the image itself -->
+<div class="spider-hang" id="spiderHang" title="sup">
+  <img src="./spider-hang.png" alt="spider hanging by a thread" />
+</div>
+
+<!-- little spider that follows the cursor around the tab -->
+<div class="mouse-spider" id="mouseSpider">
+  <svg viewBox="0 0 22 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="11" cy="10" rx="5" ry="4" fill="#111"/>
+    <circle cx="11" cy="5" r="3" fill="#111"/>
+    <path d="M6 9 L1 6M6 11 L1 12M16 9 L21 6M16 11 L21 12M8 13 L4 17M14 13 L18 17" stroke="#111" stroke-width="1"/>
+  </svg>
+</div>
+
+<div class="page">
+  <div class="logo">WebTab</div>
+  <div class="tagline">friendly neighborhood browser start screen</div>
+  <div class="greeting" id="greeting">loading...</div>
+  <div class="clock" id="clock">--:--:--</div>
+
+  <div class="search-zone">
+    <div class="spider-thread">
+      <div class="spider" id="spiderDangle">
+        <svg viewBox="0 0 22 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="11" cy="10" rx="5" ry="4" fill="#111"/>
+          <circle cx="11" cy="5" r="3" fill="#111"/>
+          <path d="M6 9 L1 6M6 11 L1 12M16 9 L21 6M16 11 L21 12M8 13 L4 17M14 13 L18 17" stroke="#111" stroke-width="1"/>
+        </svg>
+      </div>
+    </div>
+    <form class="search-box" id="searchForm">
+      <input type="text" id="searchInput" placeholder="search the multiverse..." autocomplete="off" />
+      <button type="submit" aria-label="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </form>
+  </div>
+
+  <div class="links-row" id="linksRow">
+    <a class="quick-link" href="https://github.com" target="_blank">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><path d="M12 2C6.48 2 2 6.58 2 12.25c0 4.53 2.87 8.37 6.84 9.73.5.1.68-.22.68-.5 0-.24-.01-1.03-.01-1.86-2.78.62-3.37-1.22-3.37-1.22-.45-1.18-1.1-1.49-1.1-1.49-.9-.63.07-.62.07-.62 1 .07 1.53 1.05 1.53 1.05.89 1.56 2.34 1.11 2.91.85.09-.66.35-1.11.63-1.37-2.22-.26-4.56-1.14-4.56-5.07 0-1.12.39-2.04 1.03-2.76-.1-.26-.45-1.32.1-2.75 0 0 .84-.28 2.75 1.05a9.29 9.29 0 0 1 5 0c1.9-1.33 2.75-1.05 2.75-1.05.55 1.43.2 2.49.1 2.75.64.72 1.03 1.64 1.03 2.76 0 3.94-2.35 4.8-4.58 5.06.36.32.68.94.68 1.9 0 1.37-.01 2.47-.01 2.81 0 .28.18.61.69.5A10.26 10.26 0 0 0 22 12.25C22 6.58 17.52 2 12 2Z"/></svg></span>
+      github
+    </a>
+    <a class="quick-link" href="https://youtube.com" target="_blank">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="4" stroke="#fff" stroke-width="1.6"/><path d="M10 9l6 3-6 3V9Z" fill="#fff"/></svg></span>
+      youtube
+    </a>
+    <a class="quick-link" href="https://slack.com" target="_blank">
+      <span class="icon"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="6" height="6" rx="1.5" stroke="#fff" stroke-width="1.6"/><rect x="14" y="4" width="6" height="6" rx="1.5" stroke="#fff" stroke-width="1.6"/><rect x="4" y="14" width="6" height="6" rx="1.5" stroke="#fff" stroke-width="1.6"/><rect x="14" y="14" width="6" height="6" rx="1.5" stroke="#fff" stroke-width="1.6"/></svg></span>
+      slack
+    </a>
+  </div>
+
+</div>
+
+<!-- spidey-sense widget, now top-right corner, compact -->
+<div class="sense-corner" id="senseCorner">
+  <div class="sense-label"><span class="dot"></span>spidey-sense</div>
+  <div class="sense-text" id="senseText">tingling...</div>
+  <button class="sense-refresh" id="senseRefresh">refresh ✦</button>
+</div>
+<body>
