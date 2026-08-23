@@ -168,18 +168,22 @@ setInterval(function () {
 }, 3000);
 
 // ---------------------------------------------------------
-// part 8: spidey sense messages
+// part 8: spidey sense + nasa pic of the day
 // ---------------------------------------------------------
 
+// the key comes from the .env file (vite puts it in import.meta.env)
+var apiKey = import.meta.env.VITE_NASA_API_KEY;
+
+var sensePic = document.getElementById("sensePic");
+
+// backup messages if nasa is down or key is missing
 var senses = [
   "my spider sense is tingling...",
   "danger nearby?? probably not",
   "with great power comes great responsibility",
   "you should drink some water",
   "github misses you already",
-  "a wild bug appeared somewhere",
-  "the multiverse feels quiet today",
-  "somewhere aunt may is baking pie"
+  "a wild bug appeared somewhere"
 ];
 
 function newSense() {
@@ -187,5 +191,51 @@ function newSense() {
   senseText.textContent = senses[i];
 }
 
-senseRefresh.addEventListener("click", newSense);
-newSense();
+// pick a random date from the last year so its different every time
+function randomDate() {
+  var d = new Date();
+  d.setDate(d.getDate() - (Math.floor(Math.random() * 365) + 1));
+
+  var mm = d.getMonth() + 1;
+  var dd = d.getDate();
+  if (mm < 10) mm = "0" + mm;
+  if (dd < 10) dd = "0" + dd;
+
+  return d.getFullYear() + "-" + mm + "-" + dd;
+}
+
+function fetchSpace() {
+  // no key? just show a normal spidey message instead
+  if (!apiKey) {
+    newSense();
+    return;
+  }
+
+  senseText.textContent = "looking at the stars...";
+
+  var url = "https://api.nasa.gov/planetary/apod?api_key=" + apiKey + "&date=" + randomDate();
+
+  fetch(url)
+    .then(function (res) {
+      return res.json();
+    })
+    .then(function (data) {
+      // sometimes nasa gives a video, just try another day
+      if (data.media_type != "image") {
+        fetchSpace();
+        return;
+      }
+
+      sensePic.src = data.url;
+
+      // the explanation is way too long, only keep some words
+      var words = data.explanation.split(" ");
+      senseText.textContent = data.title + " - " + words.slice(0, 18).join(" ") + "...";
+    })
+    .catch(function () {
+      newSense();
+    });
+}
+
+senseRefresh.addEventListener("click", fetchSpace);
+fetchSpace();
