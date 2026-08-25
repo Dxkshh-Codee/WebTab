@@ -3,376 +3,85 @@
   --pink-dark:#b8215f;
   --pink-soft:#ff8fc9;
   --blue:#4fc3f7;
-  --cyan:#ffffff;
+  --cyan:#fff;
   --ink:#fdf0f6;
   --ink-dim:#c98fb0;
   --void:#0d0410;
 }
 
-body {
-  margin: 0;
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--void);color:var(--ink);font-family:'Inter',sans-serif;overflow:hidden}
+
+/* backdrop */
+#webCanvas{position:fixed;inset:0;z-index:0}
+.halftone,.vignette{position:fixed;inset:0;z-index:1;pointer-events:none}
+.halftone{opacity:.32;background-image:radial-gradient(rgba(255,63,164,.32) 1px,transparent 1.35px);background-size:14px 14px}
+.vignette{background:radial-gradient(circle at 50% 42%,transparent 28%,rgba(13,4,16,.92) 100%)}
+
+.glitch-strip{position:fixed;left:0;right:0;height:2px;z-index:4;pointer-events:none;opacity:0;background:linear-gradient(90deg,transparent,var(--cyan),transparent)}
+
+/* layout */
+.page{position:relative;z-index:2;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:20px 16px;text-align:center}
+
+/* title - slightly uneven shadow feels more hand-made */
+.logo{font-family:'Bangers',cursive;font-size:58px;letter-spacing:.03em;color:var(--pink);text-shadow:2px 0 var(--cyan),-1.5px 0 var(--pink-soft),0 4px 0 var(--pink-dark);animation:glitch 5.2s infinite}
+@keyframes glitch{0%,92%,100%{transform:none}93%{transform:translate(-1.5px,1px)}94%{transform:translate(1.5px,-1px)}95%{transform:translate(-1px,0)}}
+
+.tagline,.greeting{font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.12em}
+.tagline{font-size:11px;color:var(--cyan);opacity:.82;max-width:32ch;line-height:1.5}
+.greeting{font-size:12.5px;color:var(--ink-dim);letter-spacing:.06em}
+.clock{font-family:'JetBrains Mono',monospace;font-size:15px;color:var(--pink);letter-spacing:.04em;margin-top:-4px}
+
+/* search */
+.search-zone{position:relative;width:min(540px,90vw);z-index:9}
+.search-box{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.055);border:1.5px solid rgba(255,63,164,.38);border-radius:999px;padding:11px 18px;backdrop-filter:blur(10px);transition:border-color .2s,box-shadow .2s}
+.search-box:focus-within{border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,63,164,.18),0 0 24px rgba(255,63,164,.28)}
+.search-box input{flex:1;background:none;border:0;outline:0;color:var(--ink);font:inherit;font-size:14.5px}
+.search-box input::placeholder{color:var(--ink-dim);opacity:.9}
+.search-box button{background:none;border:0;cursor:pointer;font-size:18px;line-height:1;display:flex;align-items:center;opacity:.9}
+.search-box button:hover{opacity:1}
+
+/* dangling spider above search */
+.spider-thread{position:absolute;right:16px;top:-54px;width:1px;height:54px;z-index:10;background:linear-gradient(180deg,transparent,rgba(255,255,255,.6));transform-origin:top;animation:swing 3.3s ease-in-out infinite}
+@keyframes swing{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
+.spider{position:absolute;left:50%;top:100%;transform:translate(-50%,0);cursor:pointer;font-size:17px}
+.spider:hover{animation:skitter .32s ease}
+@keyframes skitter{0%,100%{transform:translate(-50%,0)}25%{transform:translate(calc(-50% - 3px),0)}75%{transform:translate(calc(-50% + 3px),0)}}
+
+/* quick links */
+.links-row{display:flex;gap:13px;flex-wrap:wrap;justify-content:center}
+.quick-link{display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:var(--ink);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.04em;opacity:.92}
+.quick-link:hover{opacity:1}
+.icon{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:19px;background:linear-gradient(165deg,var(--blue),#0d1f4d);border:1.5px solid rgba(255,63,164,.42);transition:transform .18s,box-shadow .18s,border-color .18s}
+.quick-link:hover .icon{transform:translateY(-3px) rotate(-3deg);border-color:var(--cyan);box-shadow:0 8px 20px rgba(255,255,255,.22)}
+
+/* spidey sense card */
+.sense-corner{position:fixed;top:20px;right:22px;z-index:5;width:178px;background:rgba(28,8,22,.72);border:1px solid rgba(255,63,164,.30);border-radius:12px;padding:10px 12px;backdrop-filter:blur(10px)}
+.sense-label{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.11em;color:var(--pink-soft);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--pink);box-shadow:0 0 6px var(--pink);animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.sense-pic{width:100%;height:68px;object-fit:cover;border-radius:8px;margin-bottom:6px;border:1px solid rgba(255,63,164,.28);display:block;background:rgba(255,63,164,.08)}
+.sense-text{font-size:10px;line-height:1.45;color:var(--ink-dim);min-height:26px}
+.sense-refresh{margin-top:7px;background:none;border:1px solid rgba(255,63,164,.38);color:var(--pink);font-family:'JetBrains Mono',monospace;font-size:8px;padding:3px 10px;border-radius:99px;cursor:pointer;transition:background .15s}
+.sense-refresh:hover{background:rgba(255,63,164,.14)}
+
+/* effects */
+.web-shot{position:fixed;z-index:3;pointer-events:none;background:#fff;border-radius:50%;box-shadow:0 0 6px #fff,0 0 12px var(--pink);animation:splat .35s ease-out forwards}
+@keyframes splat{from{transform:scale(.3);opacity:1}to{transform:scale(1);opacity:0}}
+.mouse-spider{position:fixed;top:0;left:0;z-index:6;pointer-events:none;font-size:13px;transform:translate(-50%,-50%)}
+.spider-hang{position:fixed;top:0;left:18px;z-index:5;transform-origin:top;animation:hang 4.4s ease-in-out infinite;cursor:pointer;width:88px}
+.hang-thread{width:1px;height:52px;margin:0 auto;background:linear-gradient(180deg,transparent,rgba(255,255,255,.6))}
+.hang-spider{font-size:32px;margin-top:-5px;text-align:center}
+@keyframes hang{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg)}}
+
+/* responsive - keep it loose on small screens */
+@media(max-width:700px){
+  .sense-corner{top:auto;bottom:16px;right:14px;width:148px}
+  .spider-hang{display:none}
+  .logo{font-size:52px}
 }
-
-/* basic page setup */
-* {
-  box-sizing: border-box;
-}
-
-html, body {
-  height: 100%;
-  background-color: var(--void);
-  color: var(--ink);
-  font-family: 'Inter', sans-serif;
-  overflow: hidden;
-}
-
-/* the spiderweb canvas in the back */
-#webCanvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 0;
-}
-
-/* comic book dots over everything */
-.halftone {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.35;
-  background-image: radial-gradient(rgba(255,63,164,0.35) 1px, transparent 1.4px);
-  background-size: 14px 14px;
-}
-
-/* dark corners so the middle pops more */
-.vignette {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(circle at 50% 40%, transparent 30%, rgba(13,4,16,0.9) 100%);
-}
-
-.glitch-strip {
-  position: fixed;
-  left: 0;
-  right: 0;
-  height: 2px;
-  z-index: 4;
-  pointer-events: none;
-  opacity: 0;
-  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-}
-
-.page {
-  position: relative;
-  z-index: 2;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 24px;
-  padding: 20px;
-}
-
-/* big title */
-.logo {
-  font-family: 'Bangers', cursive;
-  font-size: 60px;
-  letter-spacing: 0.03em;
-  color: var(--pink);
-  text-shadow: 2px 0 var(--cyan), -2px 0 var(--pink-soft), 0 4px 0 var(--pink-dark);
-  position: relative;
-  animation: glitchShift 5s infinite;
-}
-
-/* title glitches a little bit sometimes */
-@keyframes glitchShift {
-  0%,92%,100%{ transform: translate(0,0); }
-    93%{ transform: translate(-2px,1px); }
-    94%{ transform: translate(2px,-1px); }
-  95%{ transform: translate(-1px,0); }
-  96%{ transform: translate(0,0); }
-}
-
-.tagline {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  color: var(--cyan);
-  text-transform: uppercase;
-  text-align: center;
-  opacity: 0.85;
-}
-
-.greeting {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  letter-spacing: 0.06em;
-  color: var(--ink-dim);
-  text-transform: uppercase;
-  text-align: center;
-}
-
-.clock {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 15px;
-  color: var(--pink)
-}
-
-/* search bar */
-.search-zone {
-  position: relative;
-  width: min(560px, 90vw);
-  z-index: 9;
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: rgba(255,255,255,0.06);
-  border: 1.5px solid rgba(255,63,164,0.4);
-  border-radius: 30px;
-  padding: 12px 20px;
-  backdrop-filter: blur(10px);
-  transition: border-color .2s ease, box-shadow .2s ease;
-}
-
-/* when you click inside the search bar it glows */
-.search-box:focus-within {
-  border-color: var(--pink);
-  box-shadow: 0 0 0 3px rgba(255,63,164,0.2), 0 0 26px rgba(255,63,164,0.3);
-}
-
-.search-box input {
-  flex: 1;
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--ink);
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
-}
-
-.search-box input::placeholder { color: var(--ink-dim) }
-
-.search-box button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-}
-
-/* little spider hanging over the search bar */
-.spider-thread {
-  position: absolute;
-  right: 14px;
-  top: -56px;
-  width: 1px;
-  height: 56px;
-  z-index: 10;
-  background: linear-gradient(180deg, transparent, rgba(255,255,255,0.65));
-  transform-origin: top center;
-  animation: swingThread 3.4s ease-in-out infinite;
-}
-
-@keyframes swingThread {
-  0%,100%{ transform: rotate(-9deg); }
-  50%{ transform: rotate(9deg); }
-}
-
-.spider {
-  position: absolute;
-  left: 50%;
-  top: 100%;
-  transform: translate(-50%, 0);
-  cursor: pointer;
-  z-index: 11;
-  font-size: 18px;
-}
-
-.spider:hover { animation: spiderSkitter .3s ease-in-out }
-
-@keyframes spiderSkitter {
-  0%,100%{ transform: translate(-50%,0) }
-  25%{ transform: translate(calc(-50% - 3px), 0) }
-  75%{ transform: translate(calc(-50% + 3px), 0) }
-}
-
-.links-row {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.quick-link {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  text-decoration: none;
-  color: var(--ink);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-}
-
-.icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  background: linear-gradient(160deg, var(--blue), #0c1e4d);
-  border: 1.5px solid rgba(255,63,164,0.45);
-  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-}
-
-.quick-link:hover .icon {
-  transform: translateY(-3px) rotate(-4deg);
-  border-color: var(--cyan);
-  box-shadow: 0 8px 22px rgba(255,255,255,0.3);
-}
-
-/* spidey sense box in the corner */
-.sense-corner {
-  position: fixed;
-  top: 22px;
-  right: 24px;
-  z-index: 5;
-  width: 180px;
-  background: rgba(30,8,24,0.75);
-  border: 1px solid rgba(255,63,164,0.32);
-  border-radius: 12px;
-  padding: 10px 12px;
-  backdrop-filter: blur(10px);
-  text-align: left;
-}
-
-.sense-label {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
-  letter-spacing: 0.1em;
-  color: var(--pink-soft);
-  text-transform: uppercase;
-  margin-bottom: 5px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--pink);
-  box-shadow: 0 0 6px var(--pink);
-  animation: pulse 1.6s ease-in-out infinite;
-}
-
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-/* the nasa pic of the day */
-.sense-pic {
-  width: 100%;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 6px;
-  border: 1px solid rgba(255,63,164,0.3);
-}
-
-.sense-text { font-size: 10px; line-height: 1.45; color: var(--ink-dim); min-height: 26px }
-
-.sense-refresh {
-  margin-top: 6px;
-  background: none;
-  border: 1px solid rgba(255,63,164,0.4);
-  color: var(--pink);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 8px;
-  padding: 3px 9px;
-  border-radius: 14px;
-  cursor: pointer;
-  transition: background .15s ease;
-}
-
-.sense-refresh:hover { background: rgba(255,63,164,0.15) }
-
-/* white splat when you click the spider (made by js) */
-.web-shot {
-  position: fixed;
-  z-index: 3;
-  pointer-events: none;
-  background: #fff;
-  border-radius: 50%;
-  box-shadow: 0 0 6px #fff, 0 0 14px var(--pink);
-  animation: splat .35s ease-out forwards;
-}
-
-@keyframes splat {
-  from { transform: scale(0.3); opacity: 1 }
-  to { transform: scale(1); opacity: 0 }
-}
-
-/* tiny spider that follows your mouse */
-.mouse-spider {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 6;
-  pointer-events: none;
-  font-size: 14px;
-  transform: translate(-50%, -50%);
-}
-
-/* big hanging spider */
-.spider-hang {
-  position: fixed;
-  top: 0;
-  left: 20px;
-  z-index: 5;
-  transform-origin: top center;
-  animation: hangSwing 4.5s ease-in-out infinite;
-  cursor: pointer;
-  width: 90px;
-}
-
-/* the string of the hanging spider */
-.hang-thread {
-  width: 1px;
-  height: 55px;
-  margin-left: 50%;
-  background: linear-gradient(180deg, transparent, rgba(255,255,255,0.65));
-}
-
-/* the spider itself */
-.hang-spider {
-  font-size: 34px;
-  margin-top: -6px;
-  text-align: center;
-}
-
-@keyframes hangSwing {
-  0%,100%{ transform: rotate(-5deg); }
-  50%{ transform: rotate(5deg); }
-}
-
-/* phone stuff */
-@media (max-width:700px) {
-  .sense-corner { top: auto; bottom: 18px; right: 16px; width: 150px; }
-  .spider-hang { display: none; }
-}
-
-@media (max-width:480px) {
-  .logo { font-size: 42px }
-  .links-row { gap: 10px }
+@media(max-width:480px){
+  .logo{font-size:40px}
+  .links-row{gap:10px}
+  .page{gap:18px}
 }
