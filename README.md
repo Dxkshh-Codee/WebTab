@@ -23,61 +23,8 @@ Honestly just a bunch of small fun stuff i wanted to try:
 
 9. has that halftone comic + glitch effect so it feels like a comic book
 
-# stack
-
-no react, no next, no 10 frameworks. just:
-
-html / css / vanilla js + vite for bundling
-
-i did it this way on purpose — wanted to actually *understand* fetch, canvas, and css animations instead of just installing a library for it.
-
-## run it yourself
 
 
-git clone https://github.com/Dxkshh-Codee/WebTab.git
-cd WebTab
-npm install
-
-
-you'll need a NASA api key for the spidey-sense image to work (it's free, takes like 30 seconds):
-
-1. go to https://api.nasa.gov and get a key
-2. create a .env file in the root
-3. add this:
-
-
-VITE_NASA_API_KEY=your_key_here
-
-
-then:
-
-
-npm run dev     # local dev
-npm run build   # production build
-npm run preview # preview the build
-
-
-if you don't add a key it still works, you'll just get the fallback quotes instead of the space pics.
-
-## deploy
-
-it's already set up for github pages.
-
-
-npm run deploy
-
-
-just make sure your vite.config.js has base: /WebTab/' and pages is set to deploy from gh-pages branch.
-
-### project looks like
-
-
-WebTab/
-index.html      # layout
-style.css       # all the comic styling + animations
-src/main.js     # everything — clock, canvas, spiders, nasa fetch
-public/         # icons / favicon
-vite.config.js
 
 # AI
 
