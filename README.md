@@ -4,7 +4,7 @@ Your new tab page but it actually has personality.
 
 I got tired of opening a new tab and just staring at a blank google page or some boring default thing so i made this. spider-verse inspired and way more fun to look at.
 
-**live here → https://Dxkshh-Codee.github.io/WebTab/**
+**live here  https://Dxkshh-Codee.github.io/WebTab/**
 
 
 
