@@ -79,7 +79,7 @@ src/main.js     # everything — clock, canvas, spiders, nasa fetch
 public/         # icons / favicon
 vite.config.js
 
-#AI
+# AI
 
 I used AI for fixing some bugs and issues while writing code and take help in some parts to help writting the code where idea was my own
 
