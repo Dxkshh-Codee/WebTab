@@ -1,6 +1,4 @@
-// ============ all my javascript for webtab ============
 
-// grab everything i need from the html
 var canvas = document.getElementById("webCanvas");
 var ctx = canvas.getContext("2d");
 var clockEl = document.getElementById("clock");
@@ -14,12 +12,10 @@ var senseRefresh = document.getElementById("senseRefresh");
 var spiderDangle = document.getElementById("spiderDangle");
 var spiderHang = document.getElementById("spiderHang");
 
-// ---------------------------------------------------------
-// part 1: draw the spider web in the background
-// ---------------------------------------------------------
+
 
 function drawWeb() {
-  // make the canvas as big as the screen
+  
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
@@ -28,7 +24,7 @@ function drawWeb() {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // the spokes of the web
+  
   ctx.strokeStyle = "rgba(255,63,164,0.28)";
   ctx.lineWidth = 1;
 
@@ -43,7 +39,7 @@ function drawWeb() {
     ctx.stroke();
   }
 
-  // the circles/rings of the web
+  
   var ringSizes = [60, 130, 220, 330, 460, 610, 780, 970];
 
   for (var i = 0; i < ringSizes.length; i++) {
@@ -55,12 +51,10 @@ function drawWeb() {
 
 drawWeb();
 
-// redraw when the window gets bigger or smaller
+
 window.addEventListener("resize", drawWeb);
 
-// ---------------------------------------------------------
-// part 2: the clock
-// ---------------------------------------------------------
+
 
 function updateClock() {
   var now = new Date();
@@ -78,9 +72,7 @@ function updateClock() {
 updateClock();
 setInterval(updateClock, 1000);
 
-// ---------------------------------------------------------
-// part 3: greeting based on the time
-// ---------------------------------------------------------
+
 
 function updateGreeting() {
   var h = new Date().getHours();
@@ -99,9 +91,7 @@ function updateGreeting() {
 
 updateGreeting();
 
-// ---------------------------------------------------------
-// part 4: search bar (goes to google)
-// ---------------------------------------------------------
+
 
 searchForm.addEventListener("submit", function (e) {
   e.preventDefault(); // stop the page from reloading
@@ -113,24 +103,20 @@ searchForm.addEventListener("submit", function (e) {
   }
 });
 
-// ---------------------------------------------------------
-// part 5: little spider follows the mouse
-// ---------------------------------------------------------
+
 
 document.addEventListener("mousemove", function (e) {
   mouseSpider.style.left = e.pageX + "px";
   mouseSpider.style.top = e.pageY + "px";
 });
 
-// ---------------------------------------------------------
-// part 6: white splat when you click the spiders
-// ---------------------------------------------------------
+
 
 function makeWebShot(x, y) {
   var shot = document.createElement("div");
   shot.className = "web-shot";
 
-  // random size so it looks different every time
+  
   var size = 15 + Math.random() * 40;
 
   shot.style.width = size + "px";
@@ -140,7 +126,7 @@ function makeWebShot(x, y) {
 
   document.body.appendChild(shot);
 
-  // delete it after the animation is done
+  
   setTimeout(function () {
     shot.remove();
   }, 400);
@@ -154,9 +140,7 @@ spiderHang.addEventListener("click", function (e) {
   makeWebShot(e.pageX, e.pageY);
 });
 
-// ---------------------------------------------------------
-// part 7: the glitch line that flashes sometimes
-// ---------------------------------------------------------
+
 
 setInterval(function () {
   glitchStrip.style.top = Math.random() * 100 + "%";
@@ -167,11 +151,9 @@ setInterval(function () {
   }, 120);
 }, 3000);
 
-// ---------------------------------------------------------
-// part 8: spidey sense + nasa pic of the day
-// ---------------------------------------------------------
 
-// the key comes from the .env file (vite puts it in import.meta.env)
+
+
 var apiKey = import.meta.env.VITE_NASA_API_KEY;
 
 var sensePic = document.getElementById("sensePic");
@@ -191,7 +173,7 @@ function newSense() {
   senseText.textContent = senses[i];
 }
 
-// pick a random date from the last year so its different every time
+
 function randomDate() {
   var d = new Date();
   d.setDate(d.getDate() - (Math.floor(Math.random() * 365) + 1));
@@ -205,7 +187,7 @@ function randomDate() {
 }
 
 function fetchSpace() {
-  // no key? just show a normal spidey message instead
+  
   if (!apiKey) {
     newSense();
     return;
@@ -220,7 +202,7 @@ function fetchSpace() {
       return res.json();
     })
     .then(function (data) {
-      // sometimes nasa gives a video, just try another day
+      
       if (data.media_type != "image") {
         fetchSpace();
         return;
@@ -228,7 +210,7 @@ function fetchSpace() {
 
       sensePic.src = data.url;
 
-      // the explanation is way too long, only keep some words
+      
       var words = data.explanation.split(" ");
       senseText.textContent = data.title + " - " + words.slice(0, 18).join(" ") + "...";
     })
